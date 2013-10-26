@@ -1,0 +1,206 @@
+#!/usr/bin/python
+
+from BeautifulSoup import BeautifulSoup
+import json
+import os
+import re
+import telnetlib
+import urllib2
+
+def chessvideos():
+	title('ChessVideos.tv')
+
+	url = urllib2.urlopen("http://www.chessvideos.tv/chess-video-search.php?q=video_type%3A%22Master+Hangout%22+curtains&s=topic_id&p=&dmin=&dmax=")
+	content = url.read()
+	soup = BeautifulSoup(content)
+	links = soup.findAll("a", attrs={'class':'vlist'})
+	cols = []
+
+	regex = re.compile(r"\n\s+", re.IGNORECASE)
+	for link in links:
+		cols.append([regex.sub("", link.contents[0]), link['href']])
+
+	pretty_print(cols)
+
+def youtube():
+	title('YouTube')
+
+	channels = ['chessnetwork', 'chessexplained']
+
+	for channel in channels:
+		print channel + ':'
+		url = 'http://gdata.youtube.com/feeds/api/users/' + channel + '/uploads?max-results=5&alt=json'
+		response = urllib2.urlopen(url)
+		data = json.load(response)
+		entries = data.get('feed').get('entry')
+		entrydata = []
+
+		for entry in entries:
+			t = entry['published']['$t']
+			t = t.replace('T', ' at ').replace('.000Z', '')
+			entrydata.append([t,entry['title']['$t'],entry['media$group']['media$player'][0]['url'].replace('&feature=youtube_gdata_player', '')])
+
+		pretty_print(entrydata)
+
+def twitch():
+	title('Twitch')
+
+	games = ['Super Mario World', 'Super Mario Bros. 3', 'Super Mario Bros.', 'Chess', 'Donkey Kong']
+	channels = 'jeffw356,up2ng,hankchien,dram55,kakusho,k1rua,go1den,suidt,dethwing,roopert83,dangheesling,whenchukattacks,whenchukraces,chessnetwork,ptudose,andrewg1990'
+
+	for game in games:
+		print game + ':'
+		url = 'http://api.twitch.tv/kraken/streams?limit=24&offset=0&game=' + game.replace(' ', '+') + '&on_site=1'
+		response = urllib2.urlopen(url)
+		data = json.load(response)
+		streams = data.get('streams', None)
+		streamdata = []
+
+		for stream in streams:
+			if (stream['channel']['status'] is None):
+				stream['channel']['status'] = ''
+			streamdata.append([stream['channel']['display_name'], stream['channel']['status'], stream['channel']['url']])
+
+		pretty_print(streamdata)		
+
+	url = 'https://api.twitch.tv/kraken/streams?channel=' + channels
+	response = urllib2.urlopen(url)
+	data = json.load(response)
+	streams = data.get('streams', None)
+	streamdata = []
+
+	print '\nFollowed Channels\n'
+
+	for stream in streams:
+		if (stream['channel']['status'] is None):
+			stream['channel']['status'] = ''
+		streamdata.append([stream['channel']['display_name'], stream['channel']['status'], stream['channel']['url']])
+
+	pretty_print(streamdata)
+
+def hockey():
+	return true
+#function main()
+#    local quality = {400, 800, 1600, 3000, 4500}
+#    local games = simplexml.parse_url("http://208.92.36.37/nlds/as3/get_games.php?client=nhl&playerclient=hop")
+#    for _, game in ipairs( games.children ) do
+#        if(game.name == "game") then
+#                simplexml.add_name_maps( game )
+#                local game_date = game.attributes["game_date"]
+#                local home_team = game.children_map['home_team'][1].children[1]
+#                local away_team = game.children_map['away_team'][1].children[1]
+#                local title = game_date .. " " .. away_team .. " @ " .. home_team
+#            local node = vlc.sd.add_node( { path = "", title = title } )
+#                for _, ass in ipairs(game.children_map['assignments'][1].children) do
+#                        local feed = ass.attributes["feed_display_name"]
+#                local feed_title = home_team
+#                if(feed == "away") then
+#                    feed_title = away_team
+#                end
+#                local feed_node = node:add_node({title = feed_title})
+#                        local ipad = ass.children_map['ipad_url'][1].children[1]
+#                for _, q in ipairs(quality) do
+#                    local url = string.gsub(ipad, "ipad", q)
+#                    feed_node:add_subitem({path = url, title = q})
+#                end
+#                end
+#        end
+#    end
+#end
+
+
+def fics():
+	title('FICS')
+
+	tn = telnetlib.Telnet('freechess.org', 5000, 5)
+	tn.read_until('login: ', 5)
+	tn.write("g\n")
+	tn.read_until('Press return', 5)
+	tn.write("\n")
+	tn.read_until('ROBOadmin', 5)
+	tn.write("g /l\n")
+
+	response = tn.read_until('games displayed', 5)
+
+	if (response is None):
+		print "FICS returned no data.\n"
+		return
+
+	num_games = 0
+	games = response.rstrip().split('\n')
+	regex = re.compile(r"\s*\d+\s\d+\s.*1\s+0", re.IGNORECASE)
+
+	for game in games:
+		if (regex.match(game)):
+			print game
+			num_games += 1
+
+	if (num_games == 0):
+		print "No games currently being played."
+
+def pretty_print(data):
+	widths = [max(map(len, col)) for col in zip(*data)]
+	for d in data:
+		print "  ".join((val.ljust(width+3) for val, width in zip(d, widths)))
+
+	print ''
+
+def title(s):
+	height,width = os.popen('stty size', 'r').read().split()
+	print '-' * int(width)
+	print s
+	print ''
+
+def main():
+	print 'Welcome to the Internet TV Guide. Options:\n'
+	print '1. Twitch'
+	print '2. YouTube'
+	print '3. ChessVideos.tv'
+	print '4. FICS'
+	print '5. Hockey'
+	print '6. All'
+	print ''
+
+	s = raw_input('Enter the number of your selection: ')
+
+	# Python, why don't you support switch statements?
+	v = {
+		'1': twitch,
+		'2': youtube,
+		'3': chessvideos,
+		'4': fics,
+		'5': hockey,
+		'6': all,
+	}.get(s, none)
+
+	v()
+
+def all():
+	twitch()
+	youtube()
+	chessvideos()
+	hockey()
+	fics()
+
+def none():
+	print 'Sorry, that is not a valid option.\n\n'
+	main()
+
+if __name__ == "__main__":
+	main()
+
+
+
+# YouTube example:
+# 
+# {"id":{"$t":"http://gdata.youtube.com/feeds/api/videos/iDf56xipuzU"},"published":{"$t":"2013-09-01T00:05:01.000Z"},"updated":{"$t":"2013-09-01T02:56:12.000Z"},"category":[{"scheme":"http://schemas.google.com/g/2005#kind","term":"http://gdata.youtube.com/schemas/2007#video"},{"scheme":"http://gdata.youtube.com/schemas/2007/categories.cat","term":"Education","label":"Education"}],"title":{"$t":"LIVE Blitz Chess Commentary #246: Benko Gambit Declined","type":"text"},"content":{"$t":" FACEBOOK http://facebook.com/ChessNetwork\n TWITTER http://twitter.com/ChessNetwork\n GOOGLE+ https://plus.google.com/u/0/111685059261358125042/posts\n LIVESTREAM http://twitch.tv/ChessNetwork\n\nThis is a blitz chess game I played against a random opponent who was selected from the ChessNetwork Cafe on ChessCube. The game was livestreamed at www.twitch.tv/ChessNetwork. Time controls are set at 5 minutes per player. \n\nOpening: Benko Gambit Declined","type":"text"},"link":[{"rel":"alternate","type":"text/html","href":"http://www.youtube.com/watch?v=iDf56xipuzU&feature=youtube_gdata"},{"rel":"http://gdata.youtube.com/schemas/2007#video.responses","type":"application/atom+xml","href":"http://gdata.youtube.com/feeds/api/videos/iDf56xipuzU/responses"},{"rel":"http://gdata.youtube.com/schemas/2007#video.related","type":"application/atom+xml","href":"http://gdata.youtube.com/feeds/api/videos/iDf56xipuzU/related"},{"rel":"http://gdata.youtube.com/schemas/2007#mobile","type":"text/html","href":"http://m.youtube.com/details?v=iDf56xipuzU"},{"rel":"self","type":"application/atom+xml","href":"http://gdata.youtube.com/feeds/api/users/chessnetwork/uploads/iDf56xipuzU"}],"author":[{"name":{"$t":"ChessNetwork"},"uri":{"$t":"http://gdata.youtube.com/feeds/api/users/ChessNetwork"}}],"gd$comments":{"gd$feedLink":{"rel":"http://gdata.youtube.com/schemas/2007#comments","href":"http://gdata.youtube.com/feeds/api/videos/iDf56xipuzU/comments","countHint":9}},"yt$hd":{},"media$group":{"media$category":[{"$t":"Education","label":"Education","scheme":"http://gdata.youtube.com/schemas/2007/categories.cat"}],"media$content":[{"url":"http://www.youtube.com/v/iDf56xipuzU?version=3&f=user_uploads&app=youtube_gdata","type":"application/x-shockwave-flash","medium":"video","isDefault":"true","expression":"full","duration":980,"yt$format":5},{"url":"rtsp://r6---sn-jc47eu7z.c.youtube.com/CigLENy73wIaHwk1u6kY6_k3iBMYDSANFEgGUgx1c2VyX3VwbG9hZHMM/0/0/0/video.3gp","type":"video/3gpp","medium":"video","expression":"full","duration":980,"yt$format":1},{"url":"rtsp://r6---sn-jc47eu7z.c.youtube.com/CigLENy73wIaHwk1u6kY6_k3iBMYESARFEgGUgx1c2VyX3VwbG9hZHMM/0/0/0/video.3gp","type":"video/3gpp","medium":"video","expression":"full","duration":980,"yt$format":6}],"media$description":{"$t":" FACEBOOK http://facebook.com/ChessNetwork\n TWITTER http://twitter.com/ChessNetwork\n GOOGLE+ https://plus.google.com/u/0/111685059261358125042/posts\n LIVESTREAM http://twitch.tv/ChessNetwork\n\nThis is a blitz chess game I played against a random opponent who was selected from the ChessNetwork Cafe on ChessCube. The game was livestreamed at www.twitch.tv/ChessNetwork. Time controls are set at 5 minutes per player. \n\nOpening: Benko Gambit Declined","type":"plain"},"media$keywords":{},"media$player":[{"url":"http://www.youtube.com/watch?v=iDf56xipuzU&feature=youtube_gdata_player"}],"media$thumbnail":[{"url":"http://i1.ytimg.com/vi/iDf56xipuzU/0.jpg","height":360,"width":480,"time":"00:08:10"},{"url":"http://i1.ytimg.com/vi/iDf56xipuzU/1.jpg","height":90,"width":120,"time":"00:04:05"},{"url":"http://i1.ytimg.com/vi/iDf56xipuzU/2.jpg","height":90,"width":120,"time":"00:08:10"},{"url":"http://i1.ytimg.com/vi/iDf56xipuzU/3.jpg","height":90,"width":120,"time":"00:12:15"}],"media$title":{"$t":"LIVE Blitz Chess Commentary #246: Benko Gambit Declined","type":"plain"},"yt$duration":{"seconds":"980"}},"gd$rating":{"average":4.870968,"max":5,"min":1,"numRaters":62,"rel":"http://schemas.google.com/g/2005#overall"},"yt$statistics":{"favoriteCount":"0","viewCount":"301"}}
+
+# Twitch Example:
+# 
+# {u'_id': 6684644336, u'game': u'Super Mario World', u'_links': {u'self': u'http://api.twitch.tv/kraken/streams/dram55'}, u'channel': {u'status': u'Super Mario World - low% speedruns (small mario only)', u'display_name': u'Dram55', u'name': u'dram55', u'url': u'http://www.twitch.tv/dram55', u'profile_banner': None, u'background': None, u'updated_at': u'2013-08-31T18:40:40Z', u'delay': 0, u'game': u'Super Mario World', u'_links': {u'videos': u'http://api.twitch.tv/kraken/channels/dram55/videos', u'features': u'http://api.twitch.tv/kraken/channels/dram55/features', u'stream_key': u'http://api.twitch.tv/kraken/channels/dram55/stream_key', u'subscriptions': u'http://api.twitch.tv/kraken/channels/dram55/subscriptions', u'follows': u'http://api.twitch.tv/kraken/channels/dram55/follows', u'self': u'http://api.twitch.tv/kraken/channels/dram55', u'commercial': u'http://api.twitch.tv/kraken/channels/dram55/commercial', u'editors': u'http://api.twitch.tv/kraken/channels/dram55/editors', u'teams': u'http://api.twitch.tv/kraken/channels/dram55/teams', u'chat': u'http://api.twitch.tv/kraken/chat/dram55'}, u'mature': None, u'logo': u'http://static-cdn.jtvnw.net/jtv_user_pictures/dram55-profile_image-4a00143ec1ed995d-300x300.jpeg', u'_id': 22559125, u'banner': u'http://static-cdn.jtvnw.net/jtv_user_pictures/dram55-channel_header_image-7c5223493cfdbdc7-640x125.png', u'created_at': u'2011-05-22T23:10:48Z', u'video_banner': None}, u'preview': {u'large': u'http://static-cdn.jtvnw.net/previews-ttv/live_user_dram55-640x400.jpg', u'small': u'http://static-cdn.jtvnw.net/previews-ttv/live_user_dram55-80x50.jpg', u'medium': u'http://static-cdn.jtvnw.net/previews-ttv/live_user_dram55-320x200.jpg', u'template': u'http://static-cdn.jtvnw.net/previews-ttv/live_user_dram55-{width}x{height}.jpg'}, u'viewers': 166}
+#
+# Other Twitch URLs:
+# 
+# boxart = 'http://static-cdn.jtvnw.net/ttv-boxart/Super%20Mario%20Bros.%203.jpg';
+# videos = 'http://api.twitch.tv/kraken/videos/top?limit=24&offset=0&game=Super+Mario+Bros.+3&period=week&on_site=1'
+

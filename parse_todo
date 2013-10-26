@@ -1,0 +1,61 @@
+#!/usr/bin/perl
+
+if (@ARGV != 1) {
+	print "USAGE: perl todoparser.pl todo_yyyymm.txt\n";
+	exit;
+}
+
+my @tmp = split(/_/, $ARGV[0]);
+@tmp = split(/\./, $tmp[1]);
+my $year = substr($tmp[0],0,4);
+my $currdate = "";
+my $t;
+my $len;
+my $item;
+my $unex;
+my $meeting;
+
+print "item,time,category,unexpected,meeting\n";
+open (TODO, $ARGV[0]);
+while (<TODO>) {
+	$unex = 0;
+	$meeting = 0;
+	if ($_ =~ /(\d\d-\d\d)/) {
+		$currdate = "$1-$year";
+		next;
+	}
+	chomp($_);
+	#if it ends with [x] it was unexpected
+	if ($_ =~ /\[x\]/) {
+		$_ =~ s/\[x\]//g;
+		$unex = 1;
+	}
+
+	if ($_ =~ /\[.*?meet.*?\]/) {
+		$meeting = 1;
+	}
+
+	$_ =~ s/,(.*?)\[[A-Za-z]/-$1/g;
+	if ($_ =~ /^\+/) {
+		@tmp = split(/\[/, substr($_,1));
+		$tmp[0] =~ s/ +$//;
+		$item = $tmp[0];
+		if ($tmp[2]) {
+			$tmp[2] =~ s/\]//g;
+			$len = $tmp[2];
+		} else {
+			$len = "0.5";
+		}
+		@tmp = split(/\]/, $tmp[1]);
+		@tmp = split(/,/, $tmp[0]);		
+
+		#if ($meeting == 1) {
+		#	$meeting = $len;
+		#}
+
+		foreach $t (@tmp) {
+			print "$item,$len,$t,$unex,$meeting\n";
+		}
+	}
+}
+close(TODO);
