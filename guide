@@ -5,6 +5,7 @@ import json
 import os
 import re
 import telnetlib
+import time
 import urllib2
 
 def chessvideos():
@@ -79,34 +80,63 @@ def twitch():
 	pretty_print(streamdata)
 
 def hockey():
-	return true
-#function main()
-#    local quality = {400, 800, 1600, 3000, 4500}
-#    local games = simplexml.parse_url("http://208.92.36.37/nlds/as3/get_games.php?client=nhl&playerclient=hop")
-#    for _, game in ipairs( games.children ) do
-#        if(game.name == "game") then
-#                simplexml.add_name_maps( game )
-#                local game_date = game.attributes["game_date"]
-#                local home_team = game.children_map['home_team'][1].children[1]
-#                local away_team = game.children_map['away_team'][1].children[1]
-#                local title = game_date .. " " .. away_team .. " @ " .. home_team
-#            local node = vlc.sd.add_node( { path = "", title = title } )
-#                for _, ass in ipairs(game.children_map['assignments'][1].children) do
-#                        local feed = ass.attributes["feed_display_name"]
-#                local feed_title = home_team
-#                if(feed == "away") then
-#                    feed_title = away_team
-#                end
-#                local feed_node = node:add_node({title = feed_title})
-#                        local ipad = ass.children_map['ipad_url'][1].children[1]
-#                for _, q in ipairs(quality) do
-#                    local url = string.gsub(ipad, "ipad", q)
-#                    feed_node:add_subitem({path = url, title = q})
-#                end
-#                end
-#        end
-#    end
-#end
+	url = 'http://live.nhl.com/GameData/SeasonSchedule-20132014.json'
+	response = urllib2.urlopen(url)
+	data = json.load(response)
+	today = time.strftime('%Y%m%d')
+	this_year = time.strftime('%Y')
+	games = ['']
+	i = 1	
+	t = ' '
+	quality = [400, 800, 1200, 1600, 2400, 3000, 4500]
+
+	print "Select a game:\n"
+	for game in data:
+		if (i > 9):
+			t = ''
+		if (game[u'est'][0:8] == today):
+			games.append(game)
+			print t + str(i) + ": " + game[u'h'] + " at " + game[u'a']
+			i += 1
+
+	print ''
+
+	s = raw_input('Enter the number of your selection: ')
+
+	print "You chose number " + s + "\n"
+
+	game = games[int(s)]
+	game_id_a = str(game[u'id'])[4:6]
+	game_id_b = str(game[u'id'])[6:]
+
+	url = 'http://smb.cdnak.neulion.com/fs/nhl/mobile/feed_new/data/streams/' + this_year + '/ipad/' + game_id_a + '_' + game_id_b + '.json'
+	response = urllib2.urlopen(url)
+	data = json.load(response)
+
+	streams = [data["gameStreams"][u'ipad'][u'home'][u'live'][u'bitrate0'], data["gameStreams"][u'ipad'][u'away'][u'live'][u'bitrate0']]
+
+	print "Streams:\n"
+
+	t = ' '
+	i = 1
+	games = ['']
+	for stream in streams:
+		for bitrate in quality:
+			if (i > 9):
+				t = ''
+			s = re.sub('ipad', str(bitrate), stream)
+			games.append(s)
+			print t + str(i) + ": " + s
+			i += 1
+		print ''
+
+	s = raw_input('Enter the number of your selection: ')
+
+	print "You chose number " + s + "\n"
+
+	game = games[int(s)]
+
+	os.system('/Applications/VLC.app/Contents/MacOS/VLC ' + game + ' :http-user-agent="AppleCoreMedia/1.0.0.8C148 (iPad; U; CPU OS 4_2_1 like Mac OS X; en_us)"')
 
 
 def fics():
