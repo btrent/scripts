@@ -47,7 +47,7 @@ def twitch():
 	title('Twitch')
 
 	games = ['Super Mario World', 'Super Mario Bros. 3', 'Super Mario Bros.', 'Chess', 'Donkey Kong']
-	channels = 'jeffw356,up2ng,hankchien,dram55,kakusho,k1rua,go1den,suidt,dethwing,roopert83,dangheesling,whenchukattacks,whenchukraces,chessnetwork,ptudose,andrewg1990'
+	channels = 'jeffw356,up2ng,hankchien,dram55,thelcc,kakusho,k1rua,go1den,suidt,dethwing,roopert83,dangheesling,whenchukattacks,whenchukraces,chessnetwork,ptudose,andrewg1990'
 
 	for game in games:
 		print game + ':'
@@ -80,9 +80,11 @@ def twitch():
 	pretty_print(streamdata)
 
 def hockey():
-	url = 'http://live.nhl.com/GameData/SeasonSchedule-20132014.json'
-	response = urllib2.urlopen(url)
-	data = json.load(response)
+	#url = 'http://live.nhl.com/GameData/SeasonSchedule-20132014.json'
+	#response = urllib2.urlopen(url)
+	#data = json.load(response)
+	f = open(os.path.dirname(os.path.realpath(__file__)) + '/SeasonSchedule-20132014.json', 'r')
+	data = json.load(f)
 	today = time.strftime('%Y%m%d')
 	this_year = time.strftime('%Y')
 	games = ['']
@@ -90,13 +92,16 @@ def hockey():
 	t = ' '
 	quality = [400, 800, 1200, 1600, 2400, 3000, 4500]
 
+	data = sorted(data, key=lambda k: k[u'est']) 
+
 	print "Select a game:\n"
 	for game in data:
 		if (i > 9):
 			t = ''
 		if (game[u'est'][0:8] == today):
+			gametime = game[u'est'][9:]
 			games.append(game)
-			print t + str(i) + ": " + game[u'h'] + " at " + game[u'a']
+			print t + str(i) + ": " + game[u'h'] + " at " + game[u'a'] + " [" + gametime + "]"
 			i += 1
 
 	print ''
