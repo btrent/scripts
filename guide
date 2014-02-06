@@ -26,11 +26,11 @@ def chessvideos():
 def youtube():
 	title('YouTube')
 
-	channels = ['chessnetwork', 'chessexplained']
+	channels = ['chessnetwork', 'chessexplained', 'gregshahadechess', 'themagnuscarlsen']
 
 	for channel in channels:
 		print channel + ':'
-		url = 'http://gdata.youtube.com/feeds/api/users/' + channel + '/uploads?max-results=5&alt=json'
+		url = 'http://gdata.youtube.com/feeds/api/users/' + channel + '/uploads?max-results=50&alt=json'
 		response = urllib2.urlopen(url)
 		data = json.load(response)
 		entries = data.get('feed').get('entry')
@@ -38,8 +38,14 @@ def youtube():
 
 		for entry in entries:
 			t = entry['published']['$t']
-			t = t.replace('T', ' at ').replace('.000Z', '')
-			entrydata.append([t,entry['title']['$t'],entry['media$group']['media$player'][0]['url'].replace('&feature=youtube_gdata_player', '')])
+			videotime = time.mktime(time.strptime(t[0:10], '%Y-%m-%d'))
+			now = time.time()
+			time_delta = (now-videotime)/(60*60*24)
+
+			#only show videos less than 1 month old
+			if (time_delta < 31):
+				t = t.replace('T', ' at ').replace('.000Z', '')
+				entrydata.append([t,entry['title']['$t'],entry['media$group']['media$player'][0]['url'].replace('&feature=youtube_gdata_player', '')])
 
 		pretty_print(entrydata)
 
@@ -47,7 +53,7 @@ def twitch():
 	title('Twitch')
 
 	games = ['Super Mario World', 'Super Mario Bros. 3', 'Super Mario Bros.', 'Chess', 'Donkey Kong']
-	channels = 'jeffw356,up2ng,hankchien,dram55,thelcc,kakusho,k1rua,go1den,suidt,dethwing,roopert83,dangheesling,whenchukattacks,whenchukraces,chessnetwork,ptudose,andrewg1990'
+	channels = 'jeffw356,up2ng,hankchien,dram55,thelcc,kakusho,k1rua,sinisterwon,go1den,suidt,dethwing,roopert83,dangheesling,whenchukattacks,whenchukraces,chessnetwork,ptudose,andrewg1990'
 
 	for game in games:
 		print game + ':'
@@ -86,7 +92,8 @@ def hockey():
 	f = open(os.path.dirname(os.path.realpath(__file__)) + '/SeasonSchedule-20132014.json', 'r')
 	data = json.load(f)
 	today = time.strftime('%Y%m%d')
-	this_year = time.strftime('%Y')
+	#this_year = time.strftime('%Y')
+	this_year = "2013"
 	games = ['']
 	i = 1	
 	t = ' '
@@ -109,12 +116,12 @@ def hockey():
 	s = raw_input('Enter the number of your selection: ')
 
 	print "You chose number " + s + "\n"
-
+	
 	game = games[int(s)]
 	game_id_a = str(game[u'id'])[4:6]
 	game_id_b = str(game[u'id'])[6:]
-
 	url = 'http://smb.cdnak.neulion.com/fs/nhl/mobile/feed_new/data/streams/' + this_year + '/ipad/' + game_id_a + '_' + game_id_b + '.json'
+	
 	response = urllib2.urlopen(url)
 	data = json.load(response)
 
@@ -141,7 +148,10 @@ def hockey():
 
 	game = games[int(s)]
 
-	os.system('/Applications/VLC.app/Contents/MacOS/VLC ' + game + ' :http-user-agent="AppleCoreMedia/1.0.0.8C148 (iPad; U; CPU OS 4_2_1 like Mac OS X; en_us)"')
+	#os.system('/Applications/VLC.app/Contents/MacOS/VLC ' + game + ' :http-user-agent="AppleCoreMedia/1.0.0.8C148 (iPad; U; CPU OS 4_2_1 like Mac OS X; en_us)"')
+	#os.system('/Applications/VLC.app/Contents/MacOS/VLC ' + game)
+	#os.system('/Applications/VLC.app/Contents/MacOS/VLC ' + game + ' :http-user-agent="iTunes-AppleTV/4.1"')
+	os.system('/Applications/VLC.app/Contents/MacOS/VLC ' + game + ' :http-user-agent="Roku/DVP-5.0 (025.00E08043A)"')
 
 
 def fics():
