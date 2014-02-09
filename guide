@@ -52,7 +52,7 @@ def youtube():
 def twitch():
 	title('Twitch')
 
-	games = ['Super Mario World', 'Super Mario Bros. 3', 'Super Mario Bros.', 'Chess', 'Donkey Kong']
+	games = ['Super Mario World', 'Super Mario Bros. 3', 'Super Mario Bros.', 'Chess', 'Donkey Kong', 'Final Fantasy IV', 'Final Fantasy VI']
 	channels = 'jeffw356,up2ng,hankchien,dram55,thelcc,kakusho,k1rua,sinisterwon,go1den,suidt,dethwing,roopert83,dangheesling,whenchukattacks,whenchukraces,chessnetwork,ptudose,andrewg1990'
 
 	for game in games:
@@ -66,7 +66,7 @@ def twitch():
 		for stream in streams:
 			if (stream['channel']['status'] is None):
 				stream['channel']['status'] = ''
-			streamdata.append([stream['channel']['display_name'], stream['channel']['status'], stream['channel']['url']])
+			streamdata.append([stream['channel']['display_name'], stream['channel']['status'], stream['channel']['url'], str(stream['viewers'])] )
 
 		pretty_print(streamdata)		
 
