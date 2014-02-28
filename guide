@@ -4,6 +4,7 @@ from BeautifulSoup import BeautifulSoup
 import json
 import os
 import re
+import subprocess
 import telnetlib
 import time
 import urllib2
@@ -52,8 +53,8 @@ def youtube():
 def twitch():
 	title('Twitch')
 
-	games = ['Super Mario World', 'Super Mario Bros. 3', 'Super Mario Bros.', 'Chess', 'Donkey Kong', 'Final Fantasy IV', 'Final Fantasy VI']
-	channels = 'jeffw356,up2ng,hankchien,dram55,thelcc,kakusho,k1rua,sinisterwon,go1den,suidt,dethwing,roopert83,dangheesling,whenchukattacks,whenchukraces,chessnetwork,ptudose,andrewg1990'
+	games = ['Super Mario World', 'Super Mario Bros. 3', 'Super Mario Bros.', 'Chess', 'Donkey Kong', 'Final Fantasy Legend', 'Final Fantasy IV', 'Final Fantasy VI']
+	channels = 'jeffw356,up2ng,hankchien,dram55,poxnor,thelcc,kakusho,k1rua,sinisterwon,go1den,suidt,dethwing,roopert83,dangheesling,whenchukattacks,whenchukraces,chessnetwork,ptudose,andrewg1990'
 
 	for game in games:
 		print game + ':'
@@ -151,8 +152,11 @@ def hockey():
 	#os.system('/Applications/VLC.app/Contents/MacOS/VLC ' + game + ' :http-user-agent="AppleCoreMedia/1.0.0.8C148 (iPad; U; CPU OS 4_2_1 like Mac OS X; en_us)"')
 	#os.system('/Applications/VLC.app/Contents/MacOS/VLC ' + game)
 	#os.system('/Applications/VLC.app/Contents/MacOS/VLC ' + game + ' :http-user-agent="iTunes-AppleTV/4.1"')
-	os.system('/Applications/VLC.app/Contents/MacOS/VLC ' + game + ' :http-user-agent="Roku/DVP-5.0 (025.00E08043A)"')
-
+	#os.system('/Applications/VLC.app/Contents/MacOS/VLC ' + game + ' :http-user-agent="Roku/DVP-5.0 (025.00E08043A)"')
+	#os.spawnl(os.P_NOWAIT, 'java -jar /source/github/scripts/FuckNeulion/FuckNeulionV1.jar ' + game)
+	alt_user = os.popen("ls -l /Users/ | grep -v root | grep -v total | awk '{print $3}'").read().rstrip()
+	os.system('java -jar /source/github/scripts/FuckNeulion/FuckNeulionV1.jar ' + game + "&")
+	os.system('su - ' + alt_user + ' -c /Applications/VLC.app/Contents/MacOS/VLC\ ' + game + '\ :http-user-agent="iTunes-AppleTV/4.1"')
 
 def fics():
 	title('FICS')
