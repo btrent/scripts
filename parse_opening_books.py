@@ -10,7 +10,7 @@
 #
 # ./parse_opening_books.py Elo2400.bin black "1.e4 c6"
 #
-# PGN would be written to the stdout. Pipe output to the location of your choice.
+# PGN would be written to stdout. Pipe output to the location of your choice.
 
 import chess
 import libchess
