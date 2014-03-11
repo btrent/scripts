@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# This script extracts the the strongest opening lines from a chess opening book in
+# This script extracts the strongest opening lines from a chess opening book in
 # Polyglot format. The output is fairly dirty PGN that can be used with various 
 # chess database programs in order to study openings. This has been tested and 
 # happily used with SCID.
