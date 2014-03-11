@@ -54,7 +54,7 @@ def twitch():
 	title('Twitch')
 
 	games = ['Super Mario World', 'Super Mario Bros. 3', 'Super Mario Bros.', 'Chess', 'Donkey Kong', 'Final Fantasy Legend', 'Final Fantasy IV', 'Final Fantasy VI']
-	channels = 'jeffw356,up2ng,hankchien,dram55,poxnor,thelcc,kakusho,k1rua,sinisterwon,go1den,suidt,dethwing,roopert83,dangheesling,whenchukattacks,whenchukraces,chessnetwork,ptudose,andrewg1990'
+	channels = 'jeffw356,up2ng,hankchien,dram55,poxnor,thelcc,kakusho,sinisterwon,go1den,roopert83,whenchukattacks,whenchukraces,chessnetwork,ptudose,andrewg1990'
 
 	for game in games:
 		print game + ':'
