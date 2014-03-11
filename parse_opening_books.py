@@ -21,6 +21,7 @@ book = ""
 black = 1
 color = 0
 game_tree = {}
+max_moves = 40 #some polyglot books contain infinite repetition so a cap is recommended
 white = 0
 
 def main():
@@ -42,7 +43,10 @@ def main():
 		color = 1
 
 	opening_line = sys.argv[3]
-	process_opening(pos, opening_line)
+	if (opening_line.lower() == "full"):
+		process_full(pos)
+	else:
+		process_opening(pos, opening_line)
 		
 	clean_up()
 
@@ -56,6 +60,18 @@ def print_results():
 			print key
 			print "1/2-1/2"
 			print "\n"
+
+def process_full(pos):
+	global black
+	global color
+	global white
+
+	line = "1."
+
+	if (color == white):
+		line = make_best_move(pos, line)
+
+	step_through_moves(pos, line, False)
 
 def process_opening(pos, opening_line):
 	opening_line_array = re.sub(r'\d+\.', '', opening_line).split(' ')
@@ -87,6 +103,7 @@ def make_best_move(pos, line):
 
 def step_through_moves(pos, line, is_our_move):
 	global book
+	global max_moves
 
 	move = ""
 	entries = []
@@ -96,7 +113,7 @@ def step_through_moves(pos, line, is_our_move):
 		old_line = line
 		line = make_best_move(pos, line)
 
-		if (line == ''):
+		if (line == '' or line.count(' ') > max_moves):
 			pos = chess.Position(fen)
 			return
 
