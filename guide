@@ -27,7 +27,7 @@ def chessvideos():
 def youtube():
 	title('YouTube')
 
-	channels = ['chessnetwork', 'chessexplained', 'gregshahadechess', 'themagnuscarlsen']
+	channels = ['chessnetwork', 'chessexplained', 'gregshahadechess']
 
 	for channel in channels:
 		print channel + ':'
@@ -43,8 +43,8 @@ def youtube():
 			now = time.time()
 			time_delta = (now-videotime)/(60*60*24)
 
-			#only show videos less than 1 month old
-			if (time_delta < 31):
+			#only show videos less than 1 week old
+			if (time_delta < 7):
 				t = t.replace('T', ' at ').replace('.000Z', '')
 				entrydata.append([t,entry['title']['$t'],entry['media$group']['media$player'][0]['url'].replace('&feature=youtube_gdata_player', '')])
 
@@ -53,7 +53,7 @@ def youtube():
 def twitch():
 	title('Twitch')
 
-	games = ['Super Mario World', 'Super Mario Bros. 3', 'Super Mario Bros.', 'Chess', 'Donkey Kong', 'Final Fantasy Legend', 'Final Fantasy IV', 'Final Fantasy VI']
+	games = ['Super Mario World', 'Super Mario Bros. 3', 'Super Mario Bros.', 'The Legend of Zelda: A Link to the Past', 'Chess', 'Donkey Kong', 'Final Fantasy Legend', 'Final Fantasy IV', 'Final Fantasy VI']
 	channels = 'jeffw356,up2ng,hankchien,dram55,poxnor,thelcc,kakusho,sinisterwon,go1den,roopert83,whenchukattacks,whenchukraces,chessnetwork,ptudose,andrewg1990'
 
 	for game in games:
