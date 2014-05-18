@@ -1,0 +1,50 @@
+#!/usr/bin/python
+
+#
+# Script to save Chessgames.com collection as a PGN file
+#
+
+from BeautifulSoup import BeautifulSoup
+import re
+import sys
+import time
+import urllib2
+
+def main():
+    if (len(sys.argv) != 2):
+        print "USAGE: get_chessgames_collection <cid> \n\nExample: get_chessgames_collection 1019972\n"
+        sys.exit(0)
+
+    cid = sys.argv[1]
+    pgn = ""
+    pgn_file = open(str(cid)+'.pgn', 'w')
+
+    url = urllib2.urlopen("http://www.chessgames.com/perl/chesscollection?cid="+str(cid))
+    content = url.read()
+    soup = BeautifulSoup(content)
+    links = soup.findAll("a")
+
+    regex = re.compile(r"gid=\d+", re.IGNORECASE)
+    for link in links:
+        if (re.search(regex, link['href']) is not None):
+            gid = link['href'].split('gid=')[1]
+            pgn_url = "http://www.chessgames.com/perl/nph-chesspgn?text=1&gid=" + str(gid)
+
+            print "Getting " + str(link.contents[0])
+            url = urllib2.urlopen(pgn_url)
+            content = url.read()
+
+            pgn += str(content) + "\n"
+
+            time.sleep(5)
+
+    pgn_file.write(pgn)
+
+    print "\nWrote to " + str(cid) + ".pgn\n"
+    
+
+if __name__ == "__main__":
+    main()
+
+
+

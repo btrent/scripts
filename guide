@@ -1,13 +1,17 @@
 #!/usr/bin/python
 
 from BeautifulSoup import BeautifulSoup
+import codecs
 import json
 import os
 import re
 import subprocess
+import sys
 import telnetlib
 import time
 import urllib2
+
+sys.stdout = codecs.getwriter('utf8')(sys.stdout)
 
 def chessvideos():
 	title('ChessVideos.tv')
@@ -27,7 +31,7 @@ def chessvideos():
 def youtube():
 	title('YouTube')
 
-	channels = ['chessnetwork', 'chessexplained', 'gregshahadechess']
+	channels = ['chessnetwork', 'chessexplained', 'gregshahadechess', 'YMChessMaster']
 
 	for channel in channels:
 		print channel + ':'
@@ -54,7 +58,7 @@ def twitch():
 	title('Twitch')
 
 	games = ['Super Mario World', 'Super Mario Bros. 3', 'Super Mario Bros.', 'The Legend of Zelda: A Link to the Past', 'Chess', 'Donkey Kong', 'Final Fantasy Legend', 'Final Fantasy IV', 'Final Fantasy VI']
-	channels = 'jeffw356,up2ng,hankchien,dram55,poxnor,thelcc,kakusho,sinisterwon,go1den,roopert83,whenchukattacks,whenchukraces,chessnetwork,ptudose,andrewg1990'
+	channels = 'jeffw356,dram55,poxnor,puwexil,xelna,thelcc,kakusho,sinisterwon,whenchukattacks,whenchukraces,chessnetwork,ptudose,andrewg1990'
 
 	for game in games:
 		print game + ':'
@@ -87,12 +91,13 @@ def twitch():
 	pretty_print(streamdata)
 
 def hockey():
-	#url = 'http://live.nhl.com/GameData/SeasonSchedule-20132014.json'
-	#response = urllib2.urlopen(url)
-	#data = json.load(response)
-	f = open(os.path.dirname(os.path.realpath(__file__)) + '/SeasonSchedule-20132014.json', 'r')
-	data = json.load(f)
+	url = 'http://live.nhl.com/GameData/SeasonSchedule-20132014.json'
+	response = urllib2.urlopen(url)
+	data = json.load(response)
+	#f = open(os.path.dirname(os.path.realpath(__file__)) + '/SeasonSchedule-20132014.json', 'r')
+	#data = json.load(f)
 	today = time.strftime('%Y%m%d')
+	#today = '20140510'
 	#this_year = time.strftime('%Y')
 	this_year = "2013"
 	games = ['']
