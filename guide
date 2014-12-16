@@ -31,7 +31,7 @@ def chessvideos():
 def youtube():
 	title('YouTube')
 
-	channels = ['chessnetwork', 'chessexplained', 'gregshahadechess', 'YMChessMaster']
+	channels = ['chessnetwork', 'chessexplained', 'gregshahadechess', 'UCkErA3N4-puPKxyD_eEfmPg', 'YMChessMaster']
 
 	for channel in channels:
 		print channel + ':'

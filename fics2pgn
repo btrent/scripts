@@ -1,0 +1,124 @@
+#!/usr/bin/python
+
+from BeautifulSoup import BeautifulSoup
+import codecs
+import json
+import os
+import re
+import subprocess
+import sys
+import telnetlib
+import time
+import urllib2
+
+sys.stdout = codecs.getwriter('utf8')(sys.stdout)
+
+class Game:
+    event = "Unknown Game"
+    white = "Player 1"
+    black = "Player 2"
+    whiterating = "0"
+    blackrating = "0"
+    moves = ""
+    date = None
+    result = "*"
+
+    def pgn(self):
+        t = ""
+        t += "[Event \"" + self.event + "\"]\n"
+        t += "[Date \"" + self.date + "\"]\n"
+        t += "[White \"" + self.white + "\"]\n"
+        t += "[Black \"" + self.whiterating + "\"]\n"
+        t += "[WhiteRating \"" + self.black + "\"]\n"
+        t += "[BlackRating \"" + self.blackrating + "\"]\n"
+        t += "[Result \"" + self.result + "\"]\n"
+        t += "\n"
+        t += self.moves + " " + self.result + "\n"
+
+        return t
+
+    def __init__(self, **kwargs):
+        pass
+
+def fics(user):
+    print "Getting recent games for user " + user
+
+    tn = telnetlib.Telnet('freechess.org', 5000, 5)
+    tn.read_until('login: ', 5)
+    tn.write("g\n")
+    tn.read_until('Press return', 5)
+    tn.write("\n")
+    tn.read_until('ROBOadmin', 5)
+
+    for num in range(10):
+        tn.write("smoves " + user + " -" + str(num+1) + "\n")
+        time.sleep(1)
+
+    response = tn.read_until('Thank you for using the Free Internet Chess server', 5)
+        
+    if (response is None):
+        print "FICS returned no data.\n"
+        return
+
+    lines = response.rstrip().split('\n\r')
+    lines_to_pgn(lines)
+
+def lines_to_pgn(lines):
+    games = []
+    game = None
+    start = re.compile(r"([A-Za-z]+) \((\d{3,4})\) vs. ([A-Za-z]+) \((\d{3,4})\) --- ([A-Za-z0-9 ,:]+)", re.IGNORECASE)
+    desc = re.compile(r"([A-Za-z]+) ([A-Za-z]+) match, initial time: (\d+) minutes, increment: (\d+) seconds.", re.IGNORECASE)
+    move = re.compile(r"[ ]+(\d+)\.[ ]+([A-Za-z0-9-+*]+)[ ]+[^ ]+[ ]+([A-Za-z0-9-+*]+)", re.IGNORECASE)
+
+    for line in lines:
+        print line
+        if start.match(line):
+            print line + " matched start"
+            matches = re.search(start, line)
+
+            if game is not None:
+                games.append(game)
+
+            game = Game()
+            game.white = matches.group(1)
+            game.black = matches.group(2)
+            game.whiterating = matches.group(3)
+            game.blackrating = matches.group(4)
+            game.date = matches.group(5)
+
+        if desc.match(line):
+            print line + " matched desc"
+            matches = re.search(desc, line)
+
+            game.event = "FICS " + matches.group(3) + " " + matches.group(4) + " " \
+                         + matches.group(1).lower() + " " + matches.group(2) + " game"
+
+        if move.match(line):
+            print line + " matched move"
+            matches = re.search(move, line)
+
+            game.moves += matches.group(1) + "." + matches.group(2) + " " \
+                          + matches.group(3) + " "
+
+        if line[-3:] == "1-0" or line[-3:] == "0-1":
+            print "here we are"
+            game.result = line[-3:]
+        elif line[-7:] == "1/2-1/2":
+            print "or here"
+            game.result = line[-7:]
+
+    if game is not None:
+        games.append(game)
+
+    for game in games:
+        print game.pgn()
+
+def main():
+    if len(sys.argv) != 2:
+        print "USAGE: fics2pgn <username>\n"
+        sys.exit(1)
+
+    fics(sys.argv[1])
+
+if __name__ == "__main__":
+	main()
