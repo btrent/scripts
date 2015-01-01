@@ -41,7 +41,7 @@ class Game:
         pass
 
 def fics(user):
-    print "Getting recent games for user " + user
+    #print "Getting recent games for user " + user
 
     tn = telnetlib.Telnet('freechess.org', 5000, 5)
     tn.read_until('login: ', 5)
@@ -71,9 +71,7 @@ def lines_to_pgn(lines):
     move = re.compile(r"[ ]+(\d+)\.[ ]+([A-Za-z0-9-+*]+)[ ]+[^ ]+[ ]+([A-Za-z0-9-+*]+)", re.IGNORECASE)
 
     for line in lines:
-        print line
         if start.match(line):
-            print line + " matched start"
             matches = re.search(start, line)
 
             if game is not None:
@@ -87,24 +85,20 @@ def lines_to_pgn(lines):
             game.date = matches.group(5)
 
         if desc.match(line):
-            print line + " matched desc"
             matches = re.search(desc, line)
 
             game.event = "FICS " + matches.group(3) + " " + matches.group(4) + " " \
                          + matches.group(1).lower() + " " + matches.group(2) + " game"
 
         if move.match(line):
-            print line + " matched move"
             matches = re.search(move, line)
 
             game.moves += matches.group(1) + "." + matches.group(2) + " " \
                           + matches.group(3) + " "
 
         if line[-3:] == "1-0" or line[-3:] == "0-1":
-            print "here we are"
             game.result = line[-3:]
         elif line[-7:] == "1/2-1/2":
-            print "or here"
             game.result = line[-7:]
 
     if game is not None:

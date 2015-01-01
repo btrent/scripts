@@ -59,7 +59,7 @@ def twitch():
 
 	#games = ['Super Mario World', 'Super Mario Bros. 3', 'Super Mario Bros.', 'The Legend of Zelda: A Link to the Past', 'Chess', 'Donkey Kong', 'Soul Blazer', 'Super Metroid', 'Final Fantasy Legend', 'Final Fantasy IV', 'Final Fantasy VI']
 	games = ['The Legend of Zelda: A Link to the Past', 'Chess', 'Donkey Kong', 'Soul Blazer', 'Super Metroid', 'Final Fantasy IV', 'Final Fantasy VI']
-	channels = 'jeffw356,dram55,puwexil,apparentlypants,zoasty,ivan,xelna,sinisterwon,chessnetwork,ptudose,andrewg1990'
+	channels = 'jeffw356,dram55,puwexil,apparentlypants,zoasty,kottpower,xelna,sinisterwon,chessnetwork,ptudose,andrewg1990'
 
 	for game in games:
 		print game + ':'
@@ -70,7 +70,10 @@ def twitch():
 		streamdata = []
 
 		for stream in streams:
-			if (stream['channel']['status'] is None):
+			if 'status' in stream['channel'].keys():
+				if (stream['channel']['status'] is None):
+					stream['channel']['status'] = ''
+			else:
 				stream['channel']['status'] = ''
 			streamdata.append([stream['channel']['display_name'], stream['channel']['status'], stream['channel']['url'], str(stream['viewers'])] )
 
