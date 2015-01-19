@@ -14,238 +14,244 @@ import urllib2
 sys.stdout = codecs.getwriter('utf8')(sys.stdout)
 
 def chessvideos():
-	title('ChessVideos.tv')
+    title('ChessVideos.tv')
 
-	url = urllib2.urlopen("http://www.chessvideos.tv/chess-video-search.php?q=video_type%3A%22Master+Hangout%22+curtains&s=topic_id&p=&dmin=&dmax=")
-	content = url.read()
-	soup = BeautifulSoup(content)
-	links = soup.findAll("a", attrs={'class':'vlist'})
-	cols = []
+    url = urllib2.urlopen("http://www.chessvideos.tv/chess-video-search.php?q=video_type%3A%22Master+Hangout%22+curtains&s=topic_id&p=&dmin=&dmax=")
+    content = url.read()
+    soup = BeautifulSoup(content)
+    links = soup.findAll("a", attrs={'class':'vlist'})
+    cols = []
 
-	regex = re.compile(r"\n\s+", re.IGNORECASE)
-	for link in links:
-		cols.append([regex.sub("", link.contents[0]), link['href']])
+    regex = re.compile(r"\n\s+", re.IGNORECASE)
+    for link in links:
+        cols.append([regex.sub("", link.contents[0]), link['href']])
 
-	pretty_print(cols)
+    pretty_print(cols)
 
 def youtube():
-	title('YouTube')
+    title('YouTube')
 
-	channels = ['chessnetwork', 'chessexplained', 'gregshahadechess', 'UCkErA3N4-puPKxyD_eEfmPg', 'YMChessMaster']
+    channels = ['chessnetwork', 'chessexplained', 'gregshahadechess', 'UCkErA3N4-puPKxyD_eEfmPg', 'YMChessMaster']
 
-	for channel in channels:
-		print channel + ':'
-		url = 'http://gdata.youtube.com/feeds/api/users/' + channel + '/uploads?max-results=50&alt=json'
-		response = urllib2.urlopen(url)
-		data = json.load(response)
-		entries = data.get('feed').get('entry')
-		entrydata = []
+    for channel in channels:
+        print channel + ':'
+        url = 'http://gdata.youtube.com/feeds/api/users/' + channel + '/uploads?max-results=50&alt=json'
+        response = urllib2.urlopen(url)
+        data = json.load(response)
+        entries = data.get('feed').get('entry')
+        entrydata = []
 
-		for entry in entries:
-			t = entry['published']['$t']
-			videotime = time.mktime(time.strptime(t[0:10], '%Y-%m-%d'))
-			now = time.time()
-			time_delta = (now-videotime)/(60*60*24)
+        for entry in entries:
+            t = entry['published']['$t']
+            videotime = time.mktime(time.strptime(t[0:10], '%Y-%m-%d'))
+            now = time.time()
+            time_delta = (now-videotime)/(60*60*24)
 
-			#only show videos less than 1 week old
-			if (time_delta < 7):
-				t = t.replace('T', ' at ').replace('.000Z', '')
-				entrydata.append([t,entry['title']['$t'],entry['media$group']['media$player'][0]['url'].replace('&feature=youtube_gdata_player', '')])
+            #only show videos less than 1 week old
+            if (time_delta < 7):
+                t = t.replace('T', ' at ').replace('.000Z', '')
+                entrydata.append([t,entry['title']['$t'],entry['media$group']['media$player'][0]['url'].replace('&feature=youtube_gdata_player', '')])
 
-		pretty_print(entrydata)
+        pretty_print(entrydata)
 
 def twitch():
-	title('Twitch')
+    title('Twitch')
 
-	#games = ['Super Mario World', 'Super Mario Bros. 3', 'Super Mario Bros.', 'The Legend of Zelda: A Link to the Past', 'Chess', 'Donkey Kong', 'Soul Blazer', 'Super Metroid', 'Final Fantasy Legend', 'Final Fantasy IV', 'Final Fantasy VI']
-	games = ['The Legend of Zelda: A Link to the Past', 'Chess', 'Donkey Kong', 'Soul Blazer', 'Super Metroid', 'Final Fantasy IV', 'Final Fantasy VI']
-	channels = 'jeffw356,dram55,puwexil,apparentlypants,zoasty,kottpower,xelna,sinisterwon,chessnetwork,ptudose,andrewg1990'
+    #games = ['Super Mario World', 'Super Mario Bros. 3', 'Super Mario Bros.', 'The Legend of Zelda: A Link to the Past', 'Chess', 'Donkey Kong', 'Soul Blazer', 'Super Metroid', 'Final Fantasy Legend', 'Final Fantasy IV', 'Final Fantasy VI']
+    games = ['The Legend of Zelda: A Link to the Past', 'Chess', 'Donkey Kong', 'Soul Blazer', 'Super Metroid', 'Final Fantasy IV', 'Final Fantasy VI']
+    channels = 'jeffw356,dram55,puwexil,apparentlypants,zoasty,kottpower,xelna,sinisterwon,chessnetwork,ptudose,andrewg1990'
 
-	for game in games:
-		print game + ':'
-		url = 'http://api.twitch.tv/kraken/streams?limit=24&offset=0&game=' + game.replace(' ', '+') + '&on_site=1'
-		response = urllib2.urlopen(url)
-		data = json.load(response)
-		streams = data.get('streams', None)
-		streamdata = []
+    for game in games:
+        print game + ':'
+        url = 'http://api.twitch.tv/kraken/streams?limit=24&offset=0&game=' + game.replace(' ', '+') + '&on_site=1'
+        response = urllib2.urlopen(url)
+        data = json.load(response)
+        streams = data.get('streams', None)
+        streamdata = []
 
-		for stream in streams:
-			if 'status' in stream['channel'].keys():
-				if (stream['channel']['status'] is None):
-					stream['channel']['status'] = ''
-			else:
-				stream['channel']['status'] = ''
-			streamdata.append([stream['channel']['display_name'], stream['channel']['status'], stream['channel']['url'], str(stream['viewers'])] )
+        for stream in streams:
+            if 'status' in stream['channel'].keys():
+                if (stream['channel']['status'] is None):
+                    stream['channel']['status'] = ''
+            else:
+                stream['channel']['status'] = ''
+            if 'url' in stream['channel'].keys():
+                if stream['channel']['url'] is None:
+                    stream['channel']['url'] = 'No URL'
+            else:
+                stream['channel']['url'] = 'No URL'
 
-		pretty_print(streamdata)		
+            streamdata.append([stream['channel']['display_name'], stream['channel']['status'], stream['channel']['url'], str(stream['viewers'])] )
 
-	url = 'https://api.twitch.tv/kraken/streams?channel=' + channels
-	response = urllib2.urlopen(url)
-	data = json.load(response)
-	streams = data.get('streams', None)
-	streamdata = []
+        pretty_print(streamdata)        
 
-	print '\nFollowed Channels\n'
+    url = 'https://api.twitch.tv/kraken/streams?channel=' + channels
+    response = urllib2.urlopen(url)
+    data = json.load(response)
+    streams = data.get('streams', None)
+    streamdata = []
 
-	for stream in streams:
-		if (stream['channel']['status'] is None):
-			stream['channel']['status'] = ''
-		streamdata.append([stream['channel']['display_name'], stream['channel']['status'], stream['channel']['url']])
+    print '\nFollowed Channels\n'
 
-	pretty_print(streamdata)
+    for stream in streams:
+        if (stream['channel']['status'] is None):
+            stream['channel']['status'] = ''
+        streamdata.append([stream['channel']['display_name'], stream['channel']['status'], stream['channel']['url']])
+
+    pretty_print(streamdata)
 
 def hockey():
-	url = 'http://live.nhl.com/GameData/SeasonSchedule-20132014.json'
-	response = urllib2.urlopen(url)
-	data = json.load(response)
-	#f = open(os.path.dirname(os.path.realpath(__file__)) + '/SeasonSchedule-20132014.json', 'r')
-	#data = json.load(f)
-	today = time.strftime('%Y%m%d')
-	#today = '20140613'
-	#this_year = time.strftime('%Y')
-	this_year = "2013"
-	games = ['']
-	i = 1	
-	t = ' '
-	quality = [400, 800, 1200, 1600, 2400, 3000, 4500]
+    url = 'http://live.nhl.com/GameData/SeasonSchedule-20132014.json'
+    response = urllib2.urlopen(url)
+    data = json.load(response)
+    #f = open(os.path.dirname(os.path.realpath(__file__)) + '/SeasonSchedule-20132014.json', 'r')
+    #data = json.load(f)
+    today = time.strftime('%Y%m%d')
+    #today = '20140613'
+    #this_year = time.strftime('%Y')
+    this_year = "2013"
+    games = ['']
+    i = 1    
+    t = ' '
+    quality = [400, 800, 1200, 1600, 2400, 3000, 4500]
 
-	data = sorted(data, key=lambda k: k[u'est']) 
+    data = sorted(data, key=lambda k: k[u'est']) 
 
-	print "Select a game:\n"
-	for game in data:
-		if (i > 9):
-			t = ''
-		if (game[u'est'][0:8] == today):
-			gametime = game[u'est'][9:]
-			games.append(game)
-			print t + str(i) + ": " + game[u'h'] + " at " + game[u'a'] + " [" + gametime + "]"
-			i += 1
+    print "Select a game:\n"
+    for game in data:
+        if (i > 9):
+            t = ''
+        if (game[u'est'][0:8] == today):
+            gametime = game[u'est'][9:]
+            games.append(game)
+            print t + str(i) + ": " + game[u'h'] + " at " + game[u'a'] + " [" + gametime + "]"
+            i += 1
 
-	print ''
+    print ''
 
-	s = raw_input('Enter the number of your selection: ')
+    s = raw_input('Enter the number of your selection: ')
 
-	print "You chose number " + s + "\n"
-	
-	game = games[int(s)]
-	game_id_a = str(game[u'id'])[4:6]
-	game_id_b = str(game[u'id'])[6:]
-	url = 'http://smb.cdnak.neulion.com/fs/nhl/mobile/feed_new/data/streams/' + this_year + '/ipad/' + game_id_a + '_' + game_id_b + '.json'
-	
-	response = urllib2.urlopen(url)
-	data = json.load(response)
+    print "You chose number " + s + "\n"
+    
+    game = games[int(s)]
+    game_id_a = str(game[u'id'])[4:6]
+    game_id_b = str(game[u'id'])[6:]
+    url = 'http://smb.cdnak.neulion.com/fs/nhl/mobile/feed_new/data/streams/' + this_year + '/ipad/' + game_id_a + '_' + game_id_b + '.json'
+    
+    response = urllib2.urlopen(url)
+    data = json.load(response)
 
-	streams = [data["gameStreams"][u'ipad'][u'home'][u'live'][u'bitrate0'], data["gameStreams"][u'ipad'][u'away'][u'live'][u'bitrate0']]
+    streams = [data["gameStreams"][u'ipad'][u'home'][u'live'][u'bitrate0'], data["gameStreams"][u'ipad'][u'away'][u'live'][u'bitrate0']]
 
-	print "Streams:\n"
+    print "Streams:\n"
 
-	t = ' '
-	i = 1
-	games = ['']
-	for stream in streams:
-		for bitrate in quality:
-			if (i > 9):
-				t = ''
-			s = re.sub('ipad', str(bitrate), stream)
-			games.append(s)
-			print t + str(i) + ": " + s
-			i += 1
-		print ''
+    t = ' '
+    i = 1
+    games = ['']
+    for stream in streams:
+        for bitrate in quality:
+            if (i > 9):
+                t = ''
+            s = re.sub('ipad', str(bitrate), stream)
+            games.append(s)
+            print t + str(i) + ": " + s
+            i += 1
+        print ''
 
-	s = raw_input('Enter the number of your selection: ')
+    s = raw_input('Enter the number of your selection: ')
 
-	print "You chose number " + s + "\n"
+    print "You chose number " + s + "\n"
 
-	game = games[int(s)]
+    game = games[int(s)]
 
-	#os.system('/Applications/VLC.app/Contents/MacOS/VLC ' + game + ' :http-user-agent="AppleCoreMedia/1.0.0.8C148 (iPad; U; CPU OS 4_2_1 like Mac OS X; en_us)"')
-	#os.system('/Applications/VLC.app/Contents/MacOS/VLC ' + game)
-	#os.system('/Applications/VLC.app/Contents/MacOS/VLC ' + game + ' :http-user-agent="iTunes-AppleTV/4.1"')
-	#os.system('/Applications/VLC.app/Contents/MacOS/VLC ' + game + ' :http-user-agent="Roku/DVP-5.0 (025.00E08043A)"')
-	#os.spawnl(os.P_NOWAIT, 'java -jar /source/github/scripts/FuckNeulion/FuckNeulionV1.jar ' + game)
-	alt_user = os.popen("ls -l /Users/ | grep -v root | grep -v total | awk '{print $3}'").read().rstrip()
-	os.system('java -jar /source/github/scripts/FuckNeulion/FuckNeulionV1.jar ' + game + "&")
-	os.system('su - ' + alt_user + ' -c /Applications/VLC.app/Contents/MacOS/VLC\ ' + game + '\ :http-user-agent="iTunes-AppleTV/4.1"')
+    #os.system('/Applications/VLC.app/Contents/MacOS/VLC ' + game + ' :http-user-agent="AppleCoreMedia/1.0.0.8C148 (iPad; U; CPU OS 4_2_1 like Mac OS X; en_us)"')
+    #os.system('/Applications/VLC.app/Contents/MacOS/VLC ' + game)
+    #os.system('/Applications/VLC.app/Contents/MacOS/VLC ' + game + ' :http-user-agent="iTunes-AppleTV/4.1"')
+    #os.system('/Applications/VLC.app/Contents/MacOS/VLC ' + game + ' :http-user-agent="Roku/DVP-5.0 (025.00E08043A)"')
+    #os.spawnl(os.P_NOWAIT, 'java -jar /source/github/scripts/FuckNeulion/FuckNeulionV1.jar ' + game)
+    alt_user = os.popen("ls -l /Users/ | grep -v root | grep -v total | awk '{print $3}'").read().rstrip()
+    os.system('java -jar /source/github/scripts/FuckNeulion/FuckNeulionV1.jar ' + game + "&")
+    os.system('su - ' + alt_user + ' -c /Applications/VLC.app/Contents/MacOS/VLC\ ' + game + '\ :http-user-agent="iTunes-AppleTV/4.1"')
 
 def fics():
-	title('FICS')
+    title('FICS')
 
-	tn = telnetlib.Telnet('freechess.org', 5000, 5)
-	tn.read_until('login: ', 5)
-	tn.write("g\n")
-	tn.read_until('Press return', 5)
-	tn.write("\n")
-	tn.read_until('ROBOadmin', 5)
-	tn.write("g /l\n")
+    tn = telnetlib.Telnet('freechess.org', 5000, 5)
+    tn.read_until('login: ', 5)
+    tn.write("g\n")
+    tn.read_until('Press return', 5)
+    tn.write("\n")
+    tn.read_until('ROBOadmin', 5)
+    tn.write("g /l\n")
 
-	response = tn.read_until('games displayed', 5)
+    response = tn.read_until('games displayed', 5)
 
-	if (response is None):
-		print "FICS returned no data.\n"
-		return
+    if (response is None):
+        print "FICS returned no data.\n"
+        return
 
-	num_games = 0
-	games = response.rstrip().split('\n')
-	regex = re.compile(r"\s*\d+\s\d+\s.*1\s+0", re.IGNORECASE)
+    num_games = 0
+    games = response.rstrip().split('\n')
+    regex = re.compile(r"\s*\d+\s\d+\s.*1\s+0", re.IGNORECASE)
 
-	for game in games:
-		if (regex.match(game)):
-			print game
-			num_games += 1
+    for game in games:
+        if (regex.match(game)):
+            print game
+            num_games += 1
 
-	if (num_games == 0):
-		print "No games currently being played."
+    if (num_games == 0):
+        print "No games currently being played."
 
 def pretty_print(data):
-	widths = [max(map(len, col)) for col in zip(*data)]
-	for d in data:
-		print "  ".join((val.ljust(width+3) for val, width in zip(d, widths)))
+    widths = [max(map(len, col)) for col in zip(*data)]
+    for d in data:
+        print "  ".join((val.ljust(width+3) for val, width in zip(d, widths)))
 
-	print ''
+    print ''
 
 def title(s):
-	height,width = os.popen('stty size', 'r').read().split()
-	print '-' * int(width)
-	print s
-	print ''
+    height,width = os.popen('stty size', 'r').read().split()
+    print '-' * int(width)
+    print s
+    print ''
 
 def main():
-	print 'Welcome to the Internet TV Guide. Options:\n'
-	print '1. Twitch'
-	print '2. YouTube'
-	print '3. ChessVideos.tv'
-	print '4. FICS'
-	print '5. Hockey'
-	print '6. All'
-	print ''
+    print 'Welcome to the Internet TV Guide. Options:\n'
+    print '1. Twitch'
+    print '2. YouTube'
+    print '3. ChessVideos.tv'
+    print '4. FICS'
+    print '5. Hockey'
+    print '6. All'
+    print ''
 
-	s = raw_input('Enter the number of your selection: ')
+    s = raw_input('Enter the number of your selection: ')
 
-	# Python, why don't you support switch statements?
-	v = {
-		'1': twitch,
-		'2': youtube,
-		'3': chessvideos,
-		'4': fics,
-		'5': hockey,
-		'6': all,
-	}.get(s, none)
+    # Python, why don't you support switch statements?
+    v = {
+        '1': twitch,
+        '2': youtube,
+        '3': chessvideos,
+        '4': fics,
+        '5': hockey,
+        '6': all,
+    }.get(s, none)
 
-	v()
+    v()
 
 def all():
-	twitch()
-	youtube()
-	chessvideos()
-	hockey()
-	fics()
+    twitch()
+    youtube()
+    chessvideos()
+    hockey()
+    fics()
 
 def none():
-	print 'Sorry, that is not a valid option.\n\n'
-	main()
+    print 'Sorry, that is not a valid option.\n\n'
+    main()
 
 if __name__ == "__main__":
-	main()
+    main()
 
 
 
