@@ -2,6 +2,7 @@
 
 from BeautifulSoup import BeautifulSoup
 import codecs
+import datetime
 import json
 import os
 import re
@@ -26,7 +27,7 @@ class Game:
     def pgn(self):
         t = ""
         t += "[Event \"" + self.event + "\"]\n"
-        t += "[Date \"" + self.date + "\"]\n"
+        t += "[Date \"" + datetime.datetime.strftime(self.date, '%Y.%m.%d') + "\"]\n"
         t += "[White \"" + self.white + "\"]\n"
         t += "[Black \"" + self.whiterating + "\"]\n"
         t += "[WhiteRating \"" + self.black + "\"]\n"
@@ -68,7 +69,7 @@ def lines_to_pgn(lines):
     game = None
     start = re.compile(r"([A-Za-z]+) \((\d{3,4})\) vs. ([A-Za-z]+) \((\d{3,4})\) --- ([A-Za-z0-9 ,:]+)", re.IGNORECASE)
     desc = re.compile(r"([A-Za-z]+) ([A-Za-z]+) match, initial time: (\d+) minutes, increment: (\d+) seconds.", re.IGNORECASE)
-    move = re.compile(r"[ ]+(\d+)\.[ ]+([A-Za-z0-9-+*]+)[ ]+[^ ]+[ ]+([A-Za-z0-9-+*]+)", re.IGNORECASE)
+    move = re.compile(r"[ ]+(\d+)\.[ ]+([A-Za-z0-9-+=*]+)[ ]+[^ ]+[ ]+([A-Za-z0-9-+*]+)", re.IGNORECASE)
 
     for line in lines:
         if start.match(line):
@@ -82,7 +83,8 @@ def lines_to_pgn(lines):
             game.black = matches.group(2)
             game.whiterating = matches.group(3)
             game.blackrating = matches.group(4)
-            game.date = matches.group(5)
+            #game.date = matches.group(5)
+            game.date = datetime.datetime.strptime(matches.group(5), "%a %b %d, %H:%M %Z %Y")
 
         if desc.match(line):
             matches = re.search(desc, line)

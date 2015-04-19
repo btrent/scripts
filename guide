@@ -31,7 +31,7 @@ def chessvideos():
 def youtube():
     title('YouTube')
 
-    channels = ['chessnetwork', 'chessexplained', 'gregshahadechess', 'UCkErA3N4-puPKxyD_eEfmPg', 'YMChessMaster']
+    channels = ['chessexplained', 'gregshahadechess', 'UC1iptPG3fk6ktA36yk7THPQ', 'UCZ5A3ZVgj-Uja2mj5lGpZWw', 'UCkErA3N4-puPKxyD_eEfmPg']
 
     for channel in channels:
         print channel + ':'
@@ -57,9 +57,8 @@ def youtube():
 def twitch():
     title('Twitch')
 
-    #games = ['Super Mario World', 'Super Mario Bros. 3', 'Super Mario Bros.', 'The Legend of Zelda: A Link to the Past', 'Chess', 'Donkey Kong', 'Soul Blazer', 'Super Metroid', 'Final Fantasy Legend', 'Final Fantasy IV', 'Final Fantasy VI']
     games = ['The Legend of Zelda: A Link to the Past', 'Chess', 'Donkey Kong', 'Soul Blazer', 'Super Metroid', 'Final Fantasy IV', 'Final Fantasy VI']
-    channels = 'jeffw356,dram55,puwexil,apparentlypants,zoasty,kottpower,xelna,sinisterwon,chessnetwork,ptudose,andrewg1990'
+    channels = 'jeffw356,dram55,andyperfect,puwexil,apparentlypants,jcarverpoker,zoasty,kottpower,xelna,sinisterwon,chessnetwork,ptudose,andrewg1990'
 
     for game in games:
         print game + ':'
