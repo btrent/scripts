@@ -2,6 +2,7 @@
 
 from BeautifulSoup import BeautifulSoup
 import codecs
+import HTMLParser
 import json
 import os
 import re
@@ -28,37 +29,53 @@ def chessvideos():
 
     pretty_print(cols)
 
+# YouTube used to have a great API but Google ruined it, so screen scraping is the easiest method now
 def youtube():
     title('YouTube')
 
-    channels = ['chessexplained', 'gregshahadechess', 'UC1iptPG3fk6ktA36yk7THPQ', 'UCZ5A3ZVgj-Uja2mj5lGpZWw', 'UCkErA3N4-puPKxyD_eEfmPg']
+    # Also annoying that YouTube has two different types of channels now, for no good reason
+    users = ['Chessexplained', 'GregShahadechess']
+    for user in users:
+        entrydata = []
+        url = urllib2.urlopen("https://www.youtube.com/user/"+user+"/videos?sort=dd&view=0&shelf_id=0")
+        content = url.read()
+        soup = BeautifulSoup(content)
+        links = soup.findAll("a", attrs={'dir':'ltr'})
+
+        print_youtube_data(user, links)
+
+    channels = ['UC1iptPG3fk6ktA36yk7THPQ', 'UCZ5A3ZVgj-Uja2mj5lGpZWw', 'UClV9nqHHcsrm2krkFDPPr-g', 'UC6hOVYvNn79Sl1Fc1vx2mYA']
 
     for channel in channels:
-        print channel + ':'
-        url = 'http://gdata.youtube.com/feeds/api/users/' + channel + '/uploads?max-results=50&alt=json'
-        response = urllib2.urlopen(url)
-        data = json.load(response)
-        entries = data.get('feed').get('entry')
         entrydata = []
+        url = urllib2.urlopen("https://www.youtube.com/channel/"+channel+"/videos")
+        content = url.read()
+        soup = BeautifulSoup(content)
 
-        for entry in entries:
-            t = entry['published']['$t']
-            videotime = time.mktime(time.strptime(t[0:10], '%Y-%m-%d'))
-            now = time.time()
-            time_delta = (now-videotime)/(60*60*24)
+        links = soup.findAll("a", attrs={'dir':'ltr'})
+        name = links[0].contents[0]
 
-            #only show videos less than 1 week old
-            if (time_delta < 7):
-                t = t.replace('T', ' at ').replace('.000Z', '')
-                entrydata.append([t,entry['title']['$t'],entry['media$group']['media$player'][0]['url'].replace('&feature=youtube_gdata_player', '')])
+        print_youtube_data(name, links)
 
-        pretty_print(entrydata)
+def print_youtube_data(name, links):
+    parser = HTMLParser.HTMLParser()
+
+    print name
+
+    entrydata = []
+    i = 0
+    for link in links:
+        if (('watch' in link['href']) and (i < 5)):
+            entrydata.append([parser.unescape(link.contents[0]), "http://www.youtube.com"+link['href']])
+            i = i + 1
+            
+    pretty_print(entrydata)
 
 def twitch():
     title('Twitch')
 
     games = ['The Legend of Zelda: A Link to the Past', 'Chess', 'Donkey Kong', 'Soul Blazer', 'Super Metroid', 'Final Fantasy IV', 'Final Fantasy VI']
-    channels = 'jeffw356,dram55,andyperfect,puwexil,apparentlypants,jcarverpoker,zoasty,kottpower,xelna,sinisterwon,chessnetwork,ptudose,andrewg1990'
+    channels = 'jeffw356,dram55,andyperfect,puwexil,apparentlypants,jcarverpoker,dnegspoker,zoasty,kottpower,xelna,sinisterwon,chessnetwork,ptudose,andrewg1990'
 
     for game in games:
         print game + ':'
