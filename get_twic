@@ -1,0 +1,92 @@
+#!/usr/bin/python
+
+import os
+import urllib
+import zipfile
+
+def main():
+    black_eco = [
+        'A93','A94','A95', #Stonewall
+        'B10','B11','B12','B13','B14','B15','B16','B17','B18','B19', #Caro-Kann
+        'B01' #Scandinavian
+    ];
+    white_eco = [
+        'A46','A48','D00','D02' #London
+    ];
+    min_elo = 2300
+    twic_dir = '/Users/btrent/chess/database/twic/'
+    twic_url = 'http://theweekinchess.com/zips/'
+    latest = 1102
+    
+    for dirname, dirnames, filenames in os.walk(twic_dir):
+        for filename in filenames:
+            if filename.startswith('twic') and filename.endswith('zip'):
+                num = int(filename[4:8])
+                if num > latest:
+                    latest = num
+    
+    latest = latest +1
+    
+    filename = 'twic' + str(latest) + 'g.zip'
+    url = twic_url + filename
+    
+    zipurl = urllib.URLopener()
+    zipurl.retrieve(url, twic_dir + filename)
+    
+    all_games = ''
+    pgn = ''
+    print_current_game = False
+    invalid = False
+    eco = ''
+    
+    zfile = zipfile.ZipFile(twic_dir + filename)
+    for finfo in zfile.infolist():
+        ifile = zfile.open(finfo)
+        for line in ifile.readlines():
+            if line.startswith('[Event '):
+                if print_current_game is True and invalid is False:
+                    #could be a London system game, or a different line
+                    if eco in 'A46,A48,D00,D02':
+                        if check_london(pgn) is True:
+                            print check_london(pgn)
+                            print pgn
+                    else:
+                        print pgn
+                pgn = ''
+                eco = ''
+                print_current_game = False
+                invalid = False
+            if line.startswith('[WhiteElo') or line.startswith('[BlackElo'):
+                if int(line[11:15]) < min_elo:
+                    invalid = True
+            if line.startswith('[Result '):
+                result = line[9:12]
+            if line.startswith('[ECO '):
+                eco = line[6:9]
+                for code in black_eco:
+                    if code == eco:
+                        if result == "0-1":
+                            print_current_game = True
+                for code in white_eco:
+                    if code == eco:
+                        if result == "1-0":
+                            print_current_game = True
+
+            all_games = all_games + line
+            pgn = pgn + line
+
+    all_pgn = open(twic_dir+'all.pgn', 'w')
+    all_pgn.write(all_games)
+
+def check_london(pgn):
+    moves = pgn.split("\n1")
+    #check first 5 moves
+    if "Nf3" in moves[1][0:45]:
+        if "Bf4" in moves[1][0:45]:
+            if "e3" in moves[1][0:45]:
+                return True
+
+    return False
+
+if __name__ == "__main__":
+    main()

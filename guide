@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-from BeautifulSoup import BeautifulSoup
+from bs4 import BeautifulSoup
 import codecs
 import HTMLParser
 import json
@@ -75,7 +75,7 @@ def twitch():
     title('Twitch')
 
     games = ['The Legend of Zelda: A Link to the Past', 'Chess', 'Donkey Kong', 'Soul Blazer', 'Super Metroid', 'Final Fantasy IV', 'Final Fantasy VI']
-    channels = 'jeffw356,dram55,andyperfect,puwexil,apparentlypants,jcarverpoker,dnegspoker,zoasty,kottpower,xelna,sinisterwon,chessnetwork,ptudose,andrewg1990'
+    channels = 'jeffw356,dram55,andyperfect,pjdicesare,capnclever,puwexil,jcarverpoker,zoasty,kottpower,chessnetwork,ptudose'
 
     for game in games:
         print game + ':'
@@ -221,7 +221,14 @@ def fics():
 def pretty_print(data):
     widths = [max(map(len, col)) for col in zip(*data)]
     for d in data:
-        print "  ".join((val.ljust(width+3) for val, width in zip(d, widths)))
+#        print "  ".join((val.ljust(width+3) for val, width in zip(d, widths)))
+        t = []
+        for val, width in zip(d, widths):
+            if width > 95:
+                val = val[0:95]
+                width = 98
+            t.append(val.ljust(width+3))
+        print "  ".join(t)
 
     print ''
 
