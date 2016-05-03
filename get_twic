@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import os
+import sys
 import urllib
 import zipfile
 
@@ -31,8 +32,12 @@ def main():
     url = twic_url + filename
     
     zipurl = urllib.URLopener()
-    zipurl.retrieve(url, twic_dir + filename)
-    
+    try:
+        zipurl.retrieve(url, twic_dir + filename)
+    except IOError:
+        print "TWIC number " + str(latest) + " does not exist."
+        sys.exit(0)
+
     all_games = ''
     pgn = ''
     print_current_game = False
@@ -75,7 +80,7 @@ def main():
             all_games = all_games + line
             pgn = pgn + line
 
-    all_pgn = open(twic_dir+'all.pgn', 'w')
+    all_pgn = open(twic_dir+'all_'+str(latest)+'.pgn', 'w')
     all_pgn.write(all_games)
 
 def check_london(pgn):
