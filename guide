@@ -44,7 +44,7 @@ def youtube():
 
         print_youtube_data(user, links)
 
-    channels = ['UC1iptPG3fk6ktA36yk7THPQ', 'UCZ5A3ZVgj-Uja2mj5lGpZWw', 'UClV9nqHHcsrm2krkFDPPr-g', 'UC6hOVYvNn79Sl1Fc1vx2mYA']
+    channels = ['UCZ5A3ZVgj-Uja2mj5lGpZWw', 'UClV9nqHHcsrm2krkFDPPr-g', 'UC6hOVYvNn79Sl1Fc1vx2mYA']
 
     for channel in channels:
         entrydata = []
@@ -74,13 +74,15 @@ def print_youtube_data(name, links):
 def twitch():
     title('Twitch')
 
+    client_id = 'n4c4ibq4qh73dyr2r3uec5bqkoqgf0y'
     games = ['The Legend of Zelda: A Link to the Past', 'Chess', 'Donkey Kong', 'Soul Blazer', 'Super Metroid', 'Final Fantasy IV', 'Final Fantasy VI']
     channels = 'jeffw356,dram55,andyperfect,pjdicesare,capnclever,puwexil,jcarverpoker,zoasty,kottpower,chessnetwork,ptudose'
 
     for game in games:
         print game + ':'
         url = 'http://api.twitch.tv/kraken/streams?limit=24&offset=0&game=' + game.replace(' ', '+') + '&on_site=1'
-        response = urllib2.urlopen(url)
+        request = urllib2.Request(url, None, {'Client-ID': client_id})
+        response = urllib2.urlopen(request)
         data = json.load(response)
         streams = data.get('streams', None)
         streamdata = []
@@ -102,7 +104,8 @@ def twitch():
         pretty_print(streamdata)        
 
     url = 'https://api.twitch.tv/kraken/streams?channel=' + channels
-    response = urllib2.urlopen(url)
+    request = urllib2.Request(url, None, {'Client-ID': client_id})
+    response = urllib2.urlopen(request)
     data = json.load(response)
     streams = data.get('streams', None)
     streamdata = []
