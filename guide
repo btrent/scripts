@@ -80,7 +80,7 @@ def twitch():
 
     for game in games:
         print game + ':'
-        url = 'http://api.twitch.tv/kraken/streams?limit=24&offset=0&game=' + game.replace(' ', '+') + '&on_site=1'
+        url = 'https://api.twitch.tv/kraken/streams?limit=24&offset=0&game=' + game.replace(' ', '+') + '&on_site=1'
         request = urllib2.Request(url, None, {'Client-ID': client_id})
         response = urllib2.urlopen(request)
         data = json.load(response)
