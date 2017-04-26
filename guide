@@ -44,7 +44,7 @@ def youtube():
 
         print_youtube_data(user, links)
 
-    channels = ['UCZ5A3ZVgj-Uja2mj5lGpZWw', 'UClV9nqHHcsrm2krkFDPPr-g', 'UC6hOVYvNn79Sl1Fc1vx2mYA']
+    channels = ['UCcYZTGsTO5TbCaA1O0wcBzw','UCZ5A3ZVgj-Uja2mj5lGpZWw', 'UClV9nqHHcsrm2krkFDPPr-g', 'UC6hOVYvNn79Sl1Fc1vx2mYA']
 
     for channel in channels:
         entrydata = []
@@ -76,7 +76,7 @@ def twitch():
 
     client_id = 'n4c4ibq4qh73dyr2r3uec5bqkoqgf0y'
     games = ['The Legend of Zelda: A Link to the Past', 'Chess', 'Donkey Kong', 'Soul Blazer', 'Super Metroid', 'Final Fantasy IV', 'Final Fantasy VI']
-    channels = 'jeffw356,dram55,andyperfect,pjdicesare,capnclever,puwexil,jcarverpoker,zoasty,kottpower,chessnetwork,ptudose'
+    channels = 'dram55,andyperfect,gyre_,darbian,pjdicesare,puwexil,jcarverpoker,zoasty,kottpower,chessnetwork,ptudose'
 
     for game in games:
         print game + ':'
@@ -87,19 +87,20 @@ def twitch():
         streams = data.get('streams', None)
         streamdata = []
 
-        for stream in streams:
-            if 'status' in stream['channel'].keys():
-                if (stream['channel']['status'] is None):
+        if streams is not None:
+            for stream in streams:
+                if 'status' in stream['channel'].keys():
+                    if (stream['channel']['status'] is None):
+                        stream['channel']['status'] = ''
+                else:
                     stream['channel']['status'] = ''
-            else:
-                stream['channel']['status'] = ''
-            if 'url' in stream['channel'].keys():
-                if stream['channel']['url'] is None:
+                if 'url' in stream['channel'].keys():
+                    if stream['channel']['url'] is None:
+                        stream['channel']['url'] = 'No URL'
+                else:
                     stream['channel']['url'] = 'No URL'
-            else:
-                stream['channel']['url'] = 'No URL'
 
-            streamdata.append([stream['channel']['display_name'], stream['channel']['status'], stream['channel']['url'], str(stream['viewers'])] )
+                streamdata.append([stream['channel']['display_name'], stream['channel']['status'], stream['channel']['url'], str(stream['viewers'])] )
 
         pretty_print(streamdata)        
 

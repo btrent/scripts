@@ -4,7 +4,7 @@
 # Script to save Chessgames.com collection as a PGN file
 #
 
-from BeautifulSoup import BeautifulSoup
+from bs4 import BeautifulSoup
 import re
 import sys
 import time
@@ -30,7 +30,7 @@ def main():
             gid = link['href'].split('gid=')[1]
             pgn_url = "http://www.chessgames.com/perl/nph-chesspgn?text=1&gid=" + str(gid)
 
-            print "Getting " + str(link.contents[0])
+            print "Getting " + link.contents[0]
             url = urllib2.urlopen(pgn_url)
             content = url.read()
 
