@@ -14,43 +14,29 @@ import urllib2
 
 sys.stdout = codecs.getwriter('utf8')(sys.stdout)
 
-def chessvideos():
-    title('ChessVideos.tv')
-
-    url = urllib2.urlopen("http://www.chessvideos.tv/chess-video-search.php?q=video_type%3A%22Master+Hangout%22+curtains&s=topic_id&p=&dmin=&dmax=")
-    content = url.read()
-    soup = BeautifulSoup(content)
-    links = soup.findAll("a", attrs={'class':'vlist'})
-    cols = []
-
-    regex = re.compile(r"\n\s+", re.IGNORECASE)
-    for link in links:
-        cols.append([regex.sub("", link.contents[0]), link['href']])
-
-    pretty_print(cols)
-
 # YouTube used to have a great API but Google ruined it, so screen scraping is the easiest method now
 def youtube():
     title('YouTube')
 
     # Also annoying that YouTube has two different types of channels now, for no good reason
-    users = ['Chessexplained', 'GregShahadechess']
+    #users = ['Chessexplained', 'GregShahadechess', 'Chyrosran22']
+    users = ['Chyrosran22']
     for user in users:
         entrydata = []
         url = urllib2.urlopen("https://www.youtube.com/user/"+user+"/videos?sort=dd&view=0&shelf_id=0")
         content = url.read()
-        soup = BeautifulSoup(content)
+        soup = BeautifulSoup(content, "lxml")
         links = soup.findAll("a", attrs={'dir':'ltr'})
 
         print_youtube_data(user, links)
 
-    channels = ['UCcYZTGsTO5TbCaA1O0wcBzw','UCZ5A3ZVgj-Uja2mj5lGpZWw', 'UClV9nqHHcsrm2krkFDPPr-g', 'UC6hOVYvNn79Sl1Fc1vx2mYA']
+    channels = ['UC6EnFbK-P5q0zeaqI5yobKg','UCbY5HhjlHrK25efi1DoFCFQ','UCcYZTGsTO5TbCaA1O0wcBzw','UCZ5A3ZVgj-Uja2mj5lGpZWw', 'UClV9nqHHcsrm2krkFDPPr-g', 'UC6hOVYvNn79Sl1Fc1vx2mYA']
 
     for channel in channels:
         entrydata = []
         url = urllib2.urlopen("https://www.youtube.com/channel/"+channel+"/videos")
         content = url.read()
-        soup = BeautifulSoup(content)
+        soup = BeautifulSoup(content, "lxml")
 
         links = soup.findAll("a", attrs={'dir':'ltr'})
         name = links[0].contents[0]
@@ -74,124 +60,52 @@ def print_youtube_data(name, links):
 def twitch():
     title('Twitch')
 
-    client_id = 'n4c4ibq4qh73dyr2r3uec5bqkoqgf0y'
+    client_id = 'CLIENTIDGOESHERE'
     games = ['The Legend of Zelda: A Link to the Past', 'Chess', 'Donkey Kong', 'Soul Blazer', 'Super Metroid', 'Final Fantasy IV', 'Final Fantasy VI']
-    channels = 'dram55,andyperfect,gyre_,darbian,pjdicesare,puwexil,jcarverpoker,zoasty,kottpower,chessnetwork,ptudose'
+    channels = ['dram55','andyperfect','gyre_','igmgatakamsky','darbian','pjdicesare','puwexil','jcarverpoker','zoasty','kottpower','chessnetwork','ptudose']
 
     for game in games:
-        print game + ':'
-        url = 'https://api.twitch.tv/kraken/streams?limit=24&offset=0&game=' + game.replace(' ', '+') + '&on_site=1'
+        url = 'https://api.twitch.tv/helix/games?name=' + game.replace(' ', '+')
         request = urllib2.Request(url, None, {'Client-ID': client_id})
         response = urllib2.urlopen(request)
         data = json.load(response)
-        streams = data.get('streams', None)
+        game_id = data.get("data")[0].get("id")
+        
+        print game + ':'
+        url = 'https://api.twitch.tv/helix/streams?game_id=' + game_id + '&first=24'
+        request = urllib2.Request(url, None, {'Client-ID': client_id})
+        response = urllib2.urlopen(request)
+        data = json.load(response)
+        streams = data.get("data", None)
         streamdata = []
 
         if streams is not None:
             for stream in streams:
-                if 'status' in stream['channel'].keys():
-                    if (stream['channel']['status'] is None):
-                        stream['channel']['status'] = ''
-                else:
-                    stream['channel']['status'] = ''
-                if 'url' in stream['channel'].keys():
-                    if stream['channel']['url'] is None:
-                        stream['channel']['url'] = 'No URL'
-                else:
-                    stream['channel']['url'] = 'No URL'
+                streamdata.append([stream['user_name'], stream['title'], 'https://twitch.tv/'+stream['user_name'], str(stream['viewer_count'])])
 
-                streamdata.append([stream['channel']['display_name'], stream['channel']['status'], stream['channel']['url'], str(stream['viewers'])] )
+        pretty_print(streamdata)
 
-        pretty_print(streamdata)        
-
-    url = 'https://api.twitch.tv/kraken/streams?channel=' + channels
+    i = 0
+    query_string = ""
+    for channel in channels:
+        if i > 0:
+            query_string = query_string + "&"
+        i = 1
+        query_string = query_string + "user_login=" + channel
+        
+    url = 'https://api.twitch.tv/helix/streams?' + query_string
     request = urllib2.Request(url, None, {'Client-ID': client_id})
     response = urllib2.urlopen(request)
     data = json.load(response)
-    streams = data.get('streams', None)
+    streams = data.get("data", None)
     streamdata = []
 
+    if streams is not None:
+        for stream in streams:
+            streamdata.append([stream['user_name'], stream['title'], 'https://twitch.tv/'+stream['user_name'], str(stream['viewer_count'])])
+
     print '\nFollowed Channels\n'
-
-    for stream in streams:
-        if (stream['channel']['status'] is None):
-            stream['channel']['status'] = ''
-        streamdata.append([stream['channel']['display_name'], stream['channel']['status'], stream['channel']['url']])
-
-    pretty_print(streamdata)
-
-def hockey():
-    url = 'http://live.nhl.com/GameData/SeasonSchedule-20132014.json'
-    response = urllib2.urlopen(url)
-    data = json.load(response)
-    #f = open(os.path.dirname(os.path.realpath(__file__)) + '/SeasonSchedule-20132014.json', 'r')
-    #data = json.load(f)
-    today = time.strftime('%Y%m%d')
-    #today = '20140613'
-    #this_year = time.strftime('%Y')
-    this_year = "2013"
-    games = ['']
-    i = 1    
-    t = ' '
-    quality = [400, 800, 1200, 1600, 2400, 3000, 4500]
-
-    data = sorted(data, key=lambda k: k[u'est']) 
-
-    print "Select a game:\n"
-    for game in data:
-        if (i > 9):
-            t = ''
-        if (game[u'est'][0:8] == today):
-            gametime = game[u'est'][9:]
-            games.append(game)
-            print t + str(i) + ": " + game[u'h'] + " at " + game[u'a'] + " [" + gametime + "]"
-            i += 1
-
-    print ''
-
-    s = raw_input('Enter the number of your selection: ')
-
-    print "You chose number " + s + "\n"
-    
-    game = games[int(s)]
-    game_id_a = str(game[u'id'])[4:6]
-    game_id_b = str(game[u'id'])[6:]
-    url = 'http://smb.cdnak.neulion.com/fs/nhl/mobile/feed_new/data/streams/' + this_year + '/ipad/' + game_id_a + '_' + game_id_b + '.json'
-    
-    response = urllib2.urlopen(url)
-    data = json.load(response)
-
-    streams = [data["gameStreams"][u'ipad'][u'home'][u'live'][u'bitrate0'], data["gameStreams"][u'ipad'][u'away'][u'live'][u'bitrate0']]
-
-    print "Streams:\n"
-
-    t = ' '
-    i = 1
-    games = ['']
-    for stream in streams:
-        for bitrate in quality:
-            if (i > 9):
-                t = ''
-            s = re.sub('ipad', str(bitrate), stream)
-            games.append(s)
-            print t + str(i) + ": " + s
-            i += 1
-        print ''
-
-    s = raw_input('Enter the number of your selection: ')
-
-    print "You chose number " + s + "\n"
-
-    game = games[int(s)]
-
-    #os.system('/Applications/VLC.app/Contents/MacOS/VLC ' + game + ' :http-user-agent="AppleCoreMedia/1.0.0.8C148 (iPad; U; CPU OS 4_2_1 like Mac OS X; en_us)"')
-    #os.system('/Applications/VLC.app/Contents/MacOS/VLC ' + game)
-    #os.system('/Applications/VLC.app/Contents/MacOS/VLC ' + game + ' :http-user-agent="iTunes-AppleTV/4.1"')
-    #os.system('/Applications/VLC.app/Contents/MacOS/VLC ' + game + ' :http-user-agent="Roku/DVP-5.0 (025.00E08043A)"')
-    #os.spawnl(os.P_NOWAIT, 'java -jar /source/github/scripts/FuckNeulion/FuckNeulionV1.jar ' + game)
-    alt_user = os.popen("ls -l /Users/ | grep -v root | grep -v total | awk '{print $3}'").read().rstrip()
-    os.system('java -jar /source/github/scripts/FuckNeulion/FuckNeulionV1.jar ' + game + "&")
-    os.system('su - ' + alt_user + ' -c /Applications/VLC.app/Contents/MacOS/VLC\ ' + game + '\ :http-user-agent="iTunes-AppleTV/4.1"')
+    pretty_print(streamdata)    
 
 def fics():
     title('FICS')
@@ -246,10 +160,8 @@ def main():
     print 'Welcome to the Internet TV Guide. Options:\n'
     print '1. Twitch'
     print '2. YouTube'
-    print '3. ChessVideos.tv'
-    print '4. FICS'
-    print '5. Hockey'
-    print '6. All'
+    print '3. FICS'
+    print '4. All'
     print ''
 
     s = raw_input('Enter the number of your selection: ')
@@ -258,10 +170,8 @@ def main():
     v = {
         '1': twitch,
         '2': youtube,
-        '3': chessvideos,
-        '4': fics,
-        '5': hockey,
-        '6': all,
+        '3': fics,
+        '4': all,
     }.get(s, none)
 
     v()
@@ -269,8 +179,6 @@ def main():
 def all():
     twitch()
     youtube()
-    chessvideos()
-    hockey()
     fics()
 
 def none():
@@ -282,16 +190,5 @@ if __name__ == "__main__":
 
 
 
-# YouTube example:
-# 
-# {"id":{"$t":"http://gdata.youtube.com/feeds/api/videos/iDf56xipuzU"},"published":{"$t":"2013-09-01T00:05:01.000Z"},"updated":{"$t":"2013-09-01T02:56:12.000Z"},"category":[{"scheme":"http://schemas.google.com/g/2005#kind","term":"http://gdata.youtube.com/schemas/2007#video"},{"scheme":"http://gdata.youtube.com/schemas/2007/categories.cat","term":"Education","label":"Education"}],"title":{"$t":"LIVE Blitz Chess Commentary #246: Benko Gambit Declined","type":"text"},"content":{"$t":" FACEBOOK http://facebook.com/ChessNetwork\n TWITTER http://twitter.com/ChessNetwork\n GOOGLE+ https://plus.google.com/u/0/111685059261358125042/posts\n LIVESTREAM http://twitch.tv/ChessNetwork\n\nThis is a blitz chess game I played against a random opponent who was selected from the ChessNetwork Cafe on ChessCube. The game was livestreamed at www.twitch.tv/ChessNetwork. Time controls are set at 5 minutes per player. \n\nOpening: Benko Gambit Declined","type":"text"},"link":[{"rel":"alternate","type":"text/html","href":"http://www.youtube.com/watch?v=iDf56xipuzU&feature=youtube_gdata"},{"rel":"http://gdata.youtube.com/schemas/2007#video.responses","type":"application/atom+xml","href":"http://gdata.youtube.com/feeds/api/videos/iDf56xipuzU/responses"},{"rel":"http://gdata.youtube.com/schemas/2007#video.related","type":"application/atom+xml","href":"http://gdata.youtube.com/feeds/api/videos/iDf56xipuzU/related"},{"rel":"http://gdata.youtube.com/schemas/2007#mobile","type":"text/html","href":"http://m.youtube.com/details?v=iDf56xipuzU"},{"rel":"self","type":"application/atom+xml","href":"http://gdata.youtube.com/feeds/api/users/chessnetwork/uploads/iDf56xipuzU"}],"author":[{"name":{"$t":"ChessNetwork"},"uri":{"$t":"http://gdata.youtube.com/feeds/api/users/ChessNetwork"}}],"gd$comments":{"gd$feedLink":{"rel":"http://gdata.youtube.com/schemas/2007#comments","href":"http://gdata.youtube.com/feeds/api/videos/iDf56xipuzU/comments","countHint":9}},"yt$hd":{},"media$group":{"media$category":[{"$t":"Education","label":"Education","scheme":"http://gdata.youtube.com/schemas/2007/categories.cat"}],"media$content":[{"url":"http://www.youtube.com/v/iDf56xipuzU?version=3&f=user_uploads&app=youtube_gdata","type":"application/x-shockwave-flash","medium":"video","isDefault":"true","expression":"full","duration":980,"yt$format":5},{"url":"rtsp://r6---sn-jc47eu7z.c.youtube.com/CigLENy73wIaHwk1u6kY6_k3iBMYDSANFEgGUgx1c2VyX3VwbG9hZHMM/0/0/0/video.3gp","type":"video/3gpp","medium":"video","expression":"full","duration":980,"yt$format":1},{"url":"rtsp://r6---sn-jc47eu7z.c.youtube.com/CigLENy73wIaHwk1u6kY6_k3iBMYESARFEgGUgx1c2VyX3VwbG9hZHMM/0/0/0/video.3gp","type":"video/3gpp","medium":"video","expression":"full","duration":980,"yt$format":6}],"media$description":{"$t":" FACEBOOK http://facebook.com/ChessNetwork\n TWITTER http://twitter.com/ChessNetwork\n GOOGLE+ https://plus.google.com/u/0/111685059261358125042/posts\n LIVESTREAM http://twitch.tv/ChessNetwork\n\nThis is a blitz chess game I played against a random opponent who was selected from the ChessNetwork Cafe on ChessCube. The game was livestreamed at www.twitch.tv/ChessNetwork. Time controls are set at 5 minutes per player. \n\nOpening: Benko Gambit Declined","type":"plain"},"media$keywords":{},"media$player":[{"url":"http://www.youtube.com/watch?v=iDf56xipuzU&feature=youtube_gdata_player"}],"media$thumbnail":[{"url":"http://i1.ytimg.com/vi/iDf56xipuzU/0.jpg","height":360,"width":480,"time":"00:08:10"},{"url":"http://i1.ytimg.com/vi/iDf56xipuzU/1.jpg","height":90,"width":120,"time":"00:04:05"},{"url":"http://i1.ytimg.com/vi/iDf56xipuzU/2.jpg","height":90,"width":120,"time":"00:08:10"},{"url":"http://i1.ytimg.com/vi/iDf56xipuzU/3.jpg","height":90,"width":120,"time":"00:12:15"}],"media$title":{"$t":"LIVE Blitz Chess Commentary #246: Benko Gambit Declined","type":"plain"},"yt$duration":{"seconds":"980"}},"gd$rating":{"average":4.870968,"max":5,"min":1,"numRaters":62,"rel":"http://schemas.google.com/g/2005#overall"},"yt$statistics":{"favoriteCount":"0","viewCount":"301"}}
 
-# Twitch Example:
-# 
-# {u'_id': 6684644336, u'game': u'Super Mario World', u'_links': {u'self': u'http://api.twitch.tv/kraken/streams/dram55'}, u'channel': {u'status': u'Super Mario World - low% speedruns (small mario only)', u'display_name': u'Dram55', u'name': u'dram55', u'url': u'http://www.twitch.tv/dram55', u'profile_banner': None, u'background': None, u'updated_at': u'2013-08-31T18:40:40Z', u'delay': 0, u'game': u'Super Mario World', u'_links': {u'videos': u'http://api.twitch.tv/kraken/channels/dram55/videos', u'features': u'http://api.twitch.tv/kraken/channels/dram55/features', u'stream_key': u'http://api.twitch.tv/kraken/channels/dram55/stream_key', u'subscriptions': u'http://api.twitch.tv/kraken/channels/dram55/subscriptions', u'follows': u'http://api.twitch.tv/kraken/channels/dram55/follows', u'self': u'http://api.twitch.tv/kraken/channels/dram55', u'commercial': u'http://api.twitch.tv/kraken/channels/dram55/commercial', u'editors': u'http://api.twitch.tv/kraken/channels/dram55/editors', u'teams': u'http://api.twitch.tv/kraken/channels/dram55/teams', u'chat': u'http://api.twitch.tv/kraken/chat/dram55'}, u'mature': None, u'logo': u'http://static-cdn.jtvnw.net/jtv_user_pictures/dram55-profile_image-4a00143ec1ed995d-300x300.jpeg', u'_id': 22559125, u'banner': u'http://static-cdn.jtvnw.net/jtv_user_pictures/dram55-channel_header_image-7c5223493cfdbdc7-640x125.png', u'created_at': u'2011-05-22T23:10:48Z', u'video_banner': None}, u'preview': {u'large': u'http://static-cdn.jtvnw.net/previews-ttv/live_user_dram55-640x400.jpg', u'small': u'http://static-cdn.jtvnw.net/previews-ttv/live_user_dram55-80x50.jpg', u'medium': u'http://static-cdn.jtvnw.net/previews-ttv/live_user_dram55-320x200.jpg', u'template': u'http://static-cdn.jtvnw.net/previews-ttv/live_user_dram55-{width}x{height}.jpg'}, u'viewers': 166}
-#
-# Other Twitch URLs:
-# 
-# boxart = 'http://static-cdn.jtvnw.net/ttv-boxart/Super%20Mario%20Bros.%203.jpg';
-# videos = 'http://api.twitch.tv/kraken/videos/top?limit=24&offset=0&game=Super+Mario+Bros.+3&period=week&on_site=1'
 
